@@ -1,5 +1,5 @@
 const express = require('express');
-const Promotion = require('../models/promotion');
+const Promotion = require('../model/promotion');
 
 const router = express.Router();
 
