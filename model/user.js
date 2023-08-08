@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
     fullname: { type: String, required: true },
     numberphone: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
+    sessionID: { type: String, default: null } // Thêm check id từ máy khách tránh 1 tk đăng nhập 2 nơi
 });
 
 const User = mongoose.model('User', userSchema);
