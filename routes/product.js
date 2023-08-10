@@ -1,12 +1,23 @@
 const express = require('express');
-const Product = require('../model/product');
+const Product = require('../models/product');
 
 const router = express.Router();
 
-// Tạo sản phẩm mới
 router.post('/create', async (req, res) => {
     try {
-        const { name, link_avt, link_img1, link_img2, link_img3, quantity, status, size, color, price, category } = req.body;
+        const {
+            name,
+            link_avt,
+            link_img1,
+            link_img2,
+            link_img3,
+            quantity,
+            status,
+            size,
+            color,
+            price,
+            description
+        } = req.body;
 
         const newProduct = new Product({
             name,
@@ -19,57 +30,59 @@ router.post('/create', async (req, res) => {
             size,
             color,
             price,
-            category,
+            description
         });
 
         await newProduct.save();
 
-        res.status(201).send('Sản phẩm đã được tạo thành công');
+        res.status(201).json({message: 'Sản phẩm đã được tạo thành công', product: newProduct});
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message});
     }
 });
 
-// Cập nhật thông tin sản phẩm
+
+router.get('/getall', async (req, res) => {
+    try {
+        const products = await Product.find();
+
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
+    }
+});
 router.put('/update/:id', async (req, res) => {
     try {
         const productId = req.params.id;
-        const { name, link_avt, link_img1, link_img2, link_img3, quantity, status, size, color, price, category } = req.body;
+        const updatedProduct = req.body;
 
-        const updatedProduct = await Product.findByIdAndUpdate(
-            productId,
-            {
-                name,
-                link_avt,
-                link_img1,
-                link_img2,
-                link_img3,
-                quantity,
-                status,
-                size,
-                color,
-                price,
-                category,
-            },
-            { new: true }
-        );
+        const product = await Product.findByIdAndUpdate(productId, updatedProduct, {
+            new: true
+        });
 
-        res.status(200).send(updatedProduct);
+        if (!product) {
+            return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+        }
+
+        res.status(200).json({ message: 'Sản phẩm đã được cập nhật thành công', product });
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
     }
 });
 
-// Xóa sản phẩm
 router.delete('/delete/:id', async (req, res) => {
     try {
         const productId = req.params.id;
 
-        await Product.findByIdAndDelete(productId);
+        const deletedProduct = await Product.findByIdAndDelete(productId);
 
-        res.status(200).send('Xóa sản phẩm thành công');
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+        }
+
+        res.status(200).json({ message: 'Sản phẩm đã được xóa thành công', product: deletedProduct });
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
     }
 });
 

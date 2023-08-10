@@ -1,74 +1,124 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const User = require('../model/user');
+const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
-// Đăng ký người dùng mới
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'dungnmph18838@fpt.edu.vn',
+        pass: 'qmvzootmqqdxswiw'
+    }
+});
+
 router.post('/register', async (req, res) => {
     try {
-        const {username, password, email, fullname, numberphone} = req.body;
+        const { username, password, email, fullname } = req.body;
 
-        const existingUser = await User.findOne({username});
+        const existingUser = await User.findOne({ username });
+
         if (existingUser) {
-            return res.status(409).json({message: 'Tên người dùng đã tồn tại'});
+            return res.status(409).json({ message: 'Tên người dùng đã tồn tại' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        const verificationCode = Math.floor(100000 + Math.random() * 900000);
 
         const newUser = new User({
             username,
             password: hashedPassword,
             email,
             fullname,
-            numberphone,
+            verificationCode, // Lưu mã xác thực vào user
+            status: 'pending' // Đặt trạng thái thành 'pending' cho việc xác thực qua email
         });
 
         await newUser.save();
 
-        res.status(201).json({message: 'Đăng ký thành công'});
+        // Gửi email xác thực
+        const mailOptions = {
+            from: 'dungnmph18838@fpt.edu.vn',
+            to: email,
+            subject: 'Xác thực tài khoản',
+            text: `Mã xác thực của bạn là: ${verificationCode}`
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+
+        res.status(201).json({ message: 'Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.' });
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra'});
+        res.status(500).json({ message: 'Đã có lỗi xảy ra' });
     }
 });
 
-// Đăng nhập
-// khi đăng nhập thành công lưu sessionID và username + pass vào preference, sau đó khi mở lại app thì sẽ request đăng nhập lại để kiểm tra, đúng thì cho vào app
-// còn không đúng thì trở về màn đăng nhập
+router.post('/verify', async (req, res) => {
+    try {
+        const { username, verificationCode } = req.body;
+
+        const user = await User.findOne({ username, verificationCode });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Mã xác thực không chính xác' });
+        }
+
+        user.status = 'active';
+        await user.save();
+
+        res.status(200).json({ message: 'Xác thực thành công' });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra' });
+    }
+});
+
+
 router.post('/login', async (req, res) => {
     try {
-        const {username, password, sessionID} = req.body;
+        const { username, password, sessionID } = req.body;
 
-        const user = await User.findOne({username});
+        const user = await User.findOne({ username });
         if (!user) {
-            return res.status(401).json({message: 'Tên người dùng không tồn tại'});
+            return res.status(401).json({ message: 'Tên người dùng không tồn tại' });
         }
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
-            return res.status(401).json({message: 'Mật khẩu không chính xác'});
+            return res.status(401).json({ message: 'Mật khẩu không chính xác' });
+        }
+
+        if (user.status === 'pending') {
+            return res.status(401).json({ message: 'Tài khoản chưa được xác thực' });
+        } else if (user.status === 'locked') {
+            return res.status(401).json({ message: 'Tài khoản đã bị khóa' });
         }
 
         if (user.sessionID) {
             if (sessionID == undefined || user.sessionID !== sessionID) {
-                console.log(user.sessionID !== sessionID)
-                return res.status(401).json({message: 'SessionID không hợp lệ cho người dùng này'});
+                return res.status(401).json({ message: 'SessionID không hợp lệ cho người dùng này' });
             }
         } else {
             // user chưa có sessionID, tạo mới và lưu
-            const token = jwt.sign({username: user.username}, 'mysecretkey');
+            const token = jwt.sign({ username: user.username }, 'mysecretkey');
             user.sessionID = token;
             await user.save();
         }
 
-        res.status(200).json({message: 'Đăng nhập thành công', user});
+        res.status(200).json({ message: 'Đăng nhập thành công', user });
     } catch (error) {
-        console.error('myVariable is undefined');
-        res.status(500).json({message: 'Đã có lỗi xảy ra' + error});
+        console.error('Đã có lỗi xảy ra:', error);
+        res.status(500).json({ message: 'Đã có lỗi xảy ra' });
     }
 });
-// Đăng xuất
+
 router.post('/logout', async (req, res) => {
     const {username} = req.body;
 

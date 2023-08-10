@@ -1,6 +1,6 @@
 const express = require('express');
-const Order = require('../model/order');
-
+const Order = require('../models/order');
+const SubOrder = require('../models/suborder');
 const router = express.Router();
 
 // thêm đơn hàng mới
@@ -24,6 +24,10 @@ router.post('/create', async (req, res) => {
         res.status(500).send('Đã có lỗi xảy ra');
     }
 });
+
+
+
+
 
 // lấy danh sách tất cả các đơn hàng
 router.get('/list', async (req, res) => {
