@@ -2,7 +2,6 @@ const express = require('express');
 const Product = require('../models/product');
 
 const router = express.Router();
-
 router.post('/create', async (req, res) => {
     try {
         const {
@@ -35,18 +34,33 @@ router.post('/create', async (req, res) => {
 
         await newProduct.save();
 
-        res.status(201).json({message: 'Sản phẩm đã được tạo thành công', product: newProduct});
+        res.status(201).json({ message: 'Sản phẩm đã được tạo thành công', product: newProduct });
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message});
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
     }
 });
-
 
 router.get('/getall', async (req, res) => {
     try {
         const products = await Product.find();
 
         res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
+    }
+});
+router.get('/get/:id', async (req, res) => {
+    const productId = req.params.id;
+
+    try {
+        // Tìm sản phẩm theo ID
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+        }
+
+        res.status(200).json(product);
     } catch (error) {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
     }
@@ -85,5 +99,6 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
     }
 });
+
 
 module.exports = router;

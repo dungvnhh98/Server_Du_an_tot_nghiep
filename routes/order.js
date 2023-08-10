@@ -26,9 +26,6 @@ router.post('/create', async (req, res) => {
 });
 
 
-
-
-
 // lấy danh sách tất cả các đơn hàng
 router.get('/list', async (req, res) => {
     try {
