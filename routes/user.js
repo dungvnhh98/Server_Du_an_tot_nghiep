@@ -197,4 +197,6 @@ router.get('/getall', async (req, res) => {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
     }
 });
+
+
 module.exports = router;
