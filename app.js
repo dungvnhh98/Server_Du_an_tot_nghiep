@@ -10,7 +10,7 @@ var usersRouter = require('./routes/user');
 const productRoutes = require('./routes/product');
 const promotionRoutes = require('./routes/promotion');
 const orderRoutes = require('./routes/order');
-const bannerRoutes = require('/routes/banner')
+const bannerRoutes = require('./routes/banner')
 
 var app = express();
 
