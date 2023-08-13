@@ -203,13 +203,11 @@ router.put('/updateStatus/:username', async (req, res) => {
         const username = req.params.username;
         const newStatus = req.body.status;
 
-        // Kiểm tra xem người dùng có tồn tại hay không
         const user = await User.findOne({ username });
         if (!user) {
             return res.status(404).json({ message: 'Không tìm thấy người dùng' });
         }
 
-        // Cập nhật trạng thái mới
         user.status = newStatus;
         await user.save();
 
