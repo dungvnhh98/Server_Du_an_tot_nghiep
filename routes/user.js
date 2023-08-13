@@ -198,5 +198,24 @@ router.get('/getall', async (req, res) => {
     }
 });
 
+router.put('/updateStatus/:username', async (req, res) => {
+    try {
+        const username = req.params.username;
+        const newStatus = req.body.status;
 
+        // Kiểm tra xem người dùng có tồn tại hay không
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+        }
+
+        // Cập nhật trạng thái mới
+        user.status = newStatus;
+        await user.save();
+
+        res.status(200).json({ message: 'Trạng thái người dùng đã được cập nhật', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
+    }
+});
 module.exports = router;
