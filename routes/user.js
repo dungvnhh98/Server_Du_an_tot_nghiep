@@ -189,5 +189,12 @@ router.put('/change-info', async (req, res) => {
         res.status(500).send('Đã có lỗi xảy ra');
     }
 });
-
+router.get('/getall', async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message });
+    }
+});
 module.exports = router;

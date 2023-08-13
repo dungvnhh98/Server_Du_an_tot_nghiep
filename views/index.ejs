@@ -5,30 +5,30 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
-    <p>Welcome to <%= title %></p>
-    <p>Các mục truy cập: users, product, promotion, order</p>
-    <hr>
-    <p>post: users/register: username, password, email, fullname, numberphone</p>
-    <p>post: users/login: username, password, sessionID(session id để xử lý việc đăng nhập chỉ trên một máy, lần đầu đăng nhập sẽ không cần gửi sessionid)</p>
-    <p>post: users/logout: username(sau khi đăng xuất mới có thể đăng nhập tài khoản ở máy khác)</p>
-    <p>put: users/change-password:  username, oldPassword, newPassword</p>
-    <p>put: users/change-info: username, password, email, fullname, numberphone</p>
-    <hr>
-    <p>get: product/getlist </p>
-    <p>post: product/create: name, link_avt, link_img1, link_img2, link_img3, quantity, status, size, color, price, category</p>
-    <p>put: product/update/("điền id sản phẩm vào đây")  : name, link_avt, link_img1, link_img2, link_img3, quantity, status, size, color, price, category</p>
-    <p>delete: product/delete/("điền id sản phẩm vào đây") </p>
-    <hr>
-    <p>post: promotion/create: title, startDate, endDate, discountType, discountValue, orderValueCondition, content </p>
-    <p>get: promotion/getlist </p>
-    <p>put: promotion/update/("điền id khuyến mãi vào đây") : title, startDate, endDate, discountType, discountValue, orderValueCondition, content </p>
-    <p>delete: promotion/delete/("điền id khuyến mãi vào đây") </p>
+<!--    <p>Welcome to <%= title %></p>-->
+<!--    <p>Các mục truy cập: users, product, promotion, order</p>-->
+<!--    <hr>-->
+<!--    <p>post: users/register: username, password, email, fullname, numberphone</p>-->
+<!--    <p>post: users/login: username, password, sessionID(session id để xử lý việc đăng nhập chỉ trên một máy, lần đầu đăng nhập sẽ không cần gửi sessionid)</p>-->
+<!--    <p>post: users/logout: username(sau khi đăng xuất mới có thể đăng nhập tài khoản ở máy khác)</p>-->
+<!--    <p>put: users/change-password:  username, oldPassword, newPassword</p>-->
+<!--    <p>put: users/change-info: username, password, email, fullname, numberphone</p>-->
+<!--    <hr>-->
+<!--    <p>get: product/getlist </p>-->
+<!--    <p>post: product/create: name, link_avt, link_img1, link_img2, link_img3, quantity, status, size, color, price, category</p>-->
+<!--    <p>put: product/update/("điền id sản phẩm vào đây")  : name, link_avt, link_img1, link_img2, link_img3, quantity, status, size, color, price, category</p>-->
+<!--    <p>delete: product/delete/("điền id sản phẩm vào đây") </p>-->
+<!--    <hr>-->
+<!--    <p>post: promotion/create: title, startDate, endDate, discountType, discountValue, orderValueCondition, content </p>-->
+<!--    <p>get: promotion/getlist </p>-->
+<!--    <p>put: promotion/update/("điền id khuyến mãi vào đây") : title, startDate, endDate, discountType, discountValue, orderValueCondition, content </p>-->
+<!--    <p>delete: promotion/delete/("điền id khuyến mãi vào đây") </p>-->
 
-    <hr>
-    <p>post: order/create: iduser, idproduct, idpromotion, status, originalPrice, discountedPrice </p>
-    <p>get: order/list </p>
-    <p>get: order/listByUser/:iduser </p>
-    <p>put: order/update/("điền id đơn hàng vào đây") : iduser, idproduct, idpromotion, status, originalPrice, discountedPrice   </p>
-    <p>delete: order/delete/("điền id đươn hàng vào đây") </p>
+<!--    <hr>-->
+<!--    <p>post: order/create: iduser, idproduct, idpromotion, status, originalPrice, discountedPrice </p>-->
+<!--    <p>get: order/list </p>-->
+<!--    <p>get: order/listByUser/:iduser </p>-->
+<!--    <p>put: order/update/("điền id đơn hàng vào đây") : iduser, idproduct, idpromotion, status, originalPrice, discountedPrice   </p>-->
+<!--    <p>delete: order/delete/("điền id đươn hàng vào đây") </p>-->
   </body>
 </html>
