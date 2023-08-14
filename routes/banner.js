@@ -14,7 +14,7 @@ router.post('/create', async (req, res) => {
         await newBanner.save();
         res.status(201).json({message: 'Banner đã được tạo thành công', banner: newBanner, result: true});
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message});
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 
@@ -23,7 +23,7 @@ router.get('/get', async (req, res) => {
         const banner = await Banner.findOne();
         res.status(200).json({banner, result: true});
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message});
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 router.put('/update', async (req, res) => {
@@ -49,7 +49,7 @@ router.put('/update', async (req, res) => {
 
         res.status(200).json({message: 'Thông tin banner đã được cập nhật', banner, result: true});
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message});
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 module.exports = router;

@@ -3,10 +3,9 @@ const Promotion = require('../models/promotion');
 
 const router = express.Router();
 
-// Thêm khuyến mãi mới
 router.post('/create', async (req, res) => {
     try {
-        const { title, startDate, endDate, discountType, discountValue, orderValueCondition, content } = req.body;
+        const {title, startDate, endDate, discountType, discountValue, orderValueCondition, content} = req.body;
 
         const newPromotion = new Promotion({
             title,
@@ -20,9 +19,9 @@ router.post('/create', async (req, res) => {
 
         await newPromotion.save();
 
-        res.status(201).send('Khuyến mãi đã được tạo thành công');
+        res.status(201).json({message: 'Khuyến mãi đã được tạo thành công', result: true});
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
@@ -30,9 +29,9 @@ router.post('/create', async (req, res) => {
 router.get('/list', async (req, res) => {
     try {
         const promotions = await Promotion.find();
-        res.status(200).json(promotions);
+        res.status(200).json({promotions, result: true});
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
@@ -40,7 +39,7 @@ router.get('/list', async (req, res) => {
 router.put('/update/:id', async (req, res) => {
     try {
         const promotionId = req.params.id;
-        const { title, startDate, endDate, discountType, discountValue, orderValueCondition, content } = req.body;
+        const {title, startDate, endDate, discountType, discountValue, orderValueCondition, content} = req.body;
 
         const updatedPromotion = await Promotion.findByIdAndUpdate(
             promotionId,
@@ -53,12 +52,12 @@ router.put('/update/:id', async (req, res) => {
                 orderValueCondition,
                 content,
             },
-            { new: true }
+            {new: true}
         );
 
-        res.status(200).json(updatedPromotion);
+        res.status(200).json({updatedPromotion, result: true});
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
@@ -69,9 +68,9 @@ router.delete('/delete/:id', async (req, res) => {
 
         await Promotion.findByIdAndDelete(promotionId);
 
-        res.status(200).send('Khuyến mãi đã được xóa thành công');
+        res.status(200).json({message: 'Khuyến mãi đã được xóa thành công', result: true});
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 

@@ -3,25 +3,22 @@ const Order = require('../models/order');
 const SubOrder = require('../models/suborder');
 const router = express.Router();
 
-// thêm đơn hàng mới
 router.post('/create', async (req, res) => {
     try {
         const {iduser, idpromotion, products} = req.body;
 
-        // Tạo đơn hàng tổng
         const newOrder = new Order({
             iduser,
             idpromotion,
             status: 'pending',
         });
 
-
-        let promotion = null
+        let promotion = null;
 
         if (idpromotion !== null) {
             promotion = await Promotion.findById(promotionId);
             if (!promotion) {
-                return res.status(404).json({message: 'Không tìm thấy khuyến mãi'});
+                return res.status(404).json({message: 'Không tìm thấy khuyến mãi', result: false});
             }
         }
 
@@ -32,7 +29,10 @@ router.post('/create', async (req, res) => {
             const productInfo = await Product.findById(product.idproduct);
 
             if (!productInfo) {
-                return res.status(404).json({message: `Không tìm thấy sản phẩm với id ${product.idproduct}`});
+                return res.status(404).json({
+                    message: `Không tìm thấy sản phẩm với id ${product.idproduct}`,
+                    result: false,
+                });
             }
 
             const subOrder = new SubOrder({
@@ -56,9 +56,9 @@ router.post('/create', async (req, res) => {
 
         if (promotion !== null && totalOriginalPrice >= promotion.orderValueCondition) {
             if (promotion.discountType === 'percent') {
-                newOrder.discountedPrice = totalOriginalPrice - totalOriginalPrice * promotion.discountValue / 100
+                newOrder.discountedPrice = totalOriginalPrice - totalOriginalPrice * promotion.discountValue / 100;
             } else {
-                newOrder.discountedPrice = totalOriginalPrice - promotion.discountValue
+                newOrder.discountedPrice = totalOriginalPrice - promotion.discountValue;
             }
         } else {
             newOrder.discountedPrice = totalOriginalPrice;
@@ -67,9 +67,9 @@ router.post('/create', async (req, res) => {
 
         await newOrder.save();
 
-        res.status(201).json({message: 'Đơn hàng đã được tạo thành công', order: newOrder});
+        res.status(201).json({message: 'Đơn hàng đã được tạo thành công', order: newOrder, result: true});
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message});
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 
