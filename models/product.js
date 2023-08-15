@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
         enum: ['in stock', 'out of business', 'out of stock'],
         required: true
     },
-    size: { type: String, required: true },
+    size: [{ type: String, required: true }],
     color: { type: String, required: true },
     price: { type: Number, required: true },
     description: { type: String, required: false },
