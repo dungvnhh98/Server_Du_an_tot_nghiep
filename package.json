@@ -12,7 +12,23 @@
     "ejs": "~2.6.1",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
+    "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.4.1",
-    "morgan": "~1.9.1"
-  }
+    "morgan": "~1.9.1",
+    "nodemailer": "^6.9.4",
+    "socket.io": "^4.7.2"
+  },
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dungvnhh98/Server_Du_an_tot_nghiep.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dungvnhh98/Server_Du_an_tot_nghiep/issues"
+  },
+  "homepage": "https://github.com/dungvnhh98/Server_Du_an_tot_nghiep#readme",
+  "description": ""
 }

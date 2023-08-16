@@ -1,90 +1,77 @@
 const express = require('express');
 const Order = require('../models/order');
-
+const SubOrder = require('../models/suborder');
 const router = express.Router();
 
-// thêm đơn hàng mới
 router.post('/create', async (req, res) => {
     try {
-        const { iduser, idproduct, idpromotion, status, originalPrice, discountedPrice } = req.body;
+        const {iduser, idpromotion, products} = req.body;
 
         const newOrder = new Order({
             iduser,
-            idproduct,
             idpromotion,
-            status,
-            originalPrice,
-            discountedPrice,
+            status: 'pending',
         });
+
+        let promotion = null;
+
+        if (idpromotion !== null) {
+            promotion = await Promotion.findById(promotionId);
+            if (!promotion) {
+                return res.status(404).json({message: 'Không tìm thấy khuyến mãi', result: false});
+            }
+        }
+
+        let totalOriginalPrice = 0;
+
+        // Tạo các đơn hàng nhỏ và tính tổng giá trị
+        for (const product of products) {
+            const productInfo = await Product.findById(product.idproduct);
+
+            if (!productInfo) {
+                return res.status(404).json({
+                    message: `Không tìm thấy sản phẩm với id ${product.idproduct}`,
+                    result: false,
+                });
+            }
+
+            const subOrder = new SubOrder({
+                idorder: newOrder._id,
+                idproduct: product.idproduct,
+                price: productInfo.price,
+                quantity: product.quantity,
+            });
+
+            await subOrder.save();
+
+            totalOriginalPrice += productInfo.price * product.quantity;
+
+            // update lượt bán và số lượng của sản phẩm
+            productInfo.soldCount += product.quantity;
+            productInfo.quantity -= product.quantity;
+            await productInfo.save();
+        }
+
+        newOrder.originalPrice = totalOriginalPrice;
+
+        if (promotion !== null && totalOriginalPrice >= promotion.orderValueCondition) {
+            if (promotion.discountType === 'percent') {
+                newOrder.discountedPrice = totalOriginalPrice - totalOriginalPrice * promotion.discountValue / 100;
+            } else {
+                newOrder.discountedPrice = totalOriginalPrice - promotion.discountValue;
+            }
+        } else {
+            newOrder.discountedPrice = totalOriginalPrice;
+            newOrder.idpromotion = null;
+        }
 
         await newOrder.save();
 
-        res.status(201).send('Đơn hàng đã được tạo thành công');
+        res.status(201).json({message: 'Đơn hàng đã được tạo thành công', order: newOrder, result: true});
     } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 
-// lấy danh sách tất cả các đơn hàng
-router.get('/list', async (req, res) => {
-    try {
-        const orders = await Order.find();
-        res.status(200).json(orders);
-    } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
-    }
-});
-
-// lấy đơn hàng theo id của user
-router.get('/listByUser/:iduser', async (req, res) => {
-    try {
-        const userId = req.params.iduser;
-
-        // Tìm tất cả các đơn hàng có iduser trùng với userId
-        const orders = await Order.find({ iduser: userId });
-
-        res.status(200).json(orders);
-    } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
-    }
-});
-
-// sửa thông tin đơn hàng theo Id(sửa trạng thái)
-router.put('/update/:id', async (req, res) => {
-    try {
-        const orderId = req.params.id;
-        const { iduser, idproduct, idpromotion, status, originalPrice, discountedPrice } = req.body;
-
-        const updatedOrder = await Order.findByIdAndUpdate(
-            orderId,
-            {
-                iduser,
-                idproduct,
-                idpromotion,
-                status,
-                originalPrice,
-                discountedPrice,
-            },
-            { new: true }
-        );
-
-        res.status(200).json(updatedOrder);
-    } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
-    }
-});
-
-// xóa đơn hàng theo ID
-router.delete('/delete/:id', async (req, res) => {
-    try {
-        const orderId = req.params.id;
-
-        await Order.findByIdAndDelete(orderId);
-
-        res.status(200).send('Đơn hàng đã được xóa thành công');
-    } catch (error) {
-        res.status(500).send('Đã có lỗi xảy ra');
-    }
-});
 
 module.exports = router;
