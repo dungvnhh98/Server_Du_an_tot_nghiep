@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 router.post('/register', async (req, res) => {
     try {
         const {username, password, email, fullname} = req.body;
-
+        console.log(req.body)
         const existingUser = await User.findOne({username});
 
         if (existingUser) {

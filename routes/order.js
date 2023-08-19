@@ -73,5 +73,67 @@ router.post('/create', async (req, res) => {
     }
 });
 
+router.get('/orders', async (req, res) => {
+    try {
+        const orders = await Order.find().populate('iduser idpromotion').exec();
+        res.status(200).json({ orders, result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
+router.get('/orders/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const orders = await Order.find({ iduser: userId }).populate('iduser idpromotion').exec();
+        res.status(200).json({ orders, result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
 
+router.get('/suborders/:orderId', async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const subOrders = await SubOrder.find({ idorder: orderId }).populate('idproduct').exec();
+        res.status(200).json({ subOrders, result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
+
+router.get('/revenue', async (req, res) => {
+    try {
+        const revenue = await Order.aggregate([
+            { $match: { status: 'confirmed' } }, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
+            { $group: { _id: null, totalRevenue: { $sum: "$discountedPrice" } } }
+        ]);
+
+        if (revenue.length > 0) {
+            res.status(200).json({ totalRevenue: revenue[0].totalRevenue, result: true });
+        } else {
+            res.status(200).json({ totalRevenue: 0, result: true }); // Không có đơn hàng xác nhận
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
+
+router.get('/revenue-by-month', async (req, res) => {
+    try {
+        const revenueByMonth = await Order.aggregate([
+            { $match: { status: 'confirmed' } }, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
+            {
+                $group: {
+                    _id: { $month: "$createdAt" }, // Nhóm theo tháng
+                    totalRevenue: { $sum: "$discountedPrice" } // Tính tổng doanh thu cho mỗi tháng
+                }
+            },
+            { $sort: { _id: 1 } } // Sắp xếp theo tháng tăng dần
+        ]);
+
+        res.status(200).json({ revenueByMonth, result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
 module.exports = router;
