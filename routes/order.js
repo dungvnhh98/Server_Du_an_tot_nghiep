@@ -73,9 +73,13 @@ router.post('/create', async (req, res) => {
     }
 });
 
-router.get('/orders', async (req, res) => {
+router.get('/getall', async (req, res) => {
     try {
-        const orders = await Order.find().populate('iduser idpromotion').exec();
+        const orders = await Order.find()
+            .populate('iduser idpromotion')
+            .sort({ createAt: -1 }) // Sắp xếp theo createAt (mới nhất đầu tiên)
+            .exec();
+
         res.status(200).json({ orders, result: true });
     } catch (error) {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
@@ -84,7 +88,7 @@ router.get('/orders', async (req, res) => {
 router.get('/orders/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
-        const orders = await Order.find({ iduser: userId }).populate('iduser idpromotion').exec();
+        const orders = await Order.find({ iduser: userId }).populate('iduser idpromotion').sort({ createAt: -1 }).exec();
         res.status(200).json({ orders, result: true });
     } catch (error) {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });

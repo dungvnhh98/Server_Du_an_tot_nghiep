@@ -47,6 +47,7 @@ router.post('/register', async (req, res) => {
             text: `Mã xác thực của bạn là: ${verificationCode}`
         };
 
+
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
