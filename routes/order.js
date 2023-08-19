@@ -1,6 +1,9 @@
 const express = require('express');
 const Order = require('../models/order');
 const SubOrder = require('../models/suborder');
+const Promotion = require('../models/promotion');
+const Product = require('../models/product');
+const User = require('../models/user');
 const router = express.Router();
 
 router.post('/create', async (req, res) => {
@@ -16,13 +19,15 @@ router.post('/create', async (req, res) => {
         let promotion = null;
 
         if (idpromotion !== null) {
-            promotion = await Promotion.findById(promotionId);
+            promotion = await Promotion.findById(idpromotion);
             if (!promotion) {
                 return res.status(404).json({message: 'Không tìm thấy khuyến mãi', result: false});
             }
         }
 
         let totalOriginalPrice = 0;
+
+        console.log(products)
 
         // Tạo các đơn hàng nhỏ và tính tổng giá trị
         for (const product of products) {
@@ -70,6 +75,7 @@ router.post('/create', async (req, res) => {
         res.status(201).json({message: 'Đơn hàng đã được tạo thành công', order: newOrder, result: true});
     } catch (error) {
         res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
+        console.log(error)
     }
 });
 
@@ -77,67 +83,88 @@ router.get('/getall', async (req, res) => {
     try {
         const orders = await Order.find()
             .populate('iduser idpromotion')
-            .sort({ createAt: -1 }) // Sắp xếp theo createAt (mới nhất đầu tiên)
+            .sort({createdAt: -1}) // Sắp xếp theo trường createdAt, đảo ngược (mới nhất đầu tiên)
             .exec();
 
-        res.status(200).json({ orders, result: true });
+        res.status(200).json({orders, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 router.get('/orders/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
-        const orders = await Order.find({ iduser: userId }).populate('iduser idpromotion').sort({ createAt: -1 }).exec();
-        res.status(200).json({ orders, result: true });
+        const orders = await Order.find({iduser: userId}).populate('iduser idpromotion').exec();
+        res.status(200).json({orders, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
 router.get('/suborders/:orderId', async (req, res) => {
     try {
         const orderId = req.params.orderId;
-        const subOrders = await SubOrder.find({ idorder: orderId }).populate('idproduct').exec();
-        res.status(200).json({ subOrders, result: true });
+        const subOrders = await SubOrder.find({idorder: orderId}).populate('idproduct').exec();
+        res.status(200).json({subOrders, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
 router.get('/revenue', async (req, res) => {
     try {
         const revenue = await Order.aggregate([
-            { $match: { status: 'confirmed' } }, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
-            { $group: { _id: null, totalRevenue: { $sum: "$discountedPrice" } } }
+            {$match: {status: 'confirmed'}}, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
+            {$group: {_id: null, totalRevenue: {$sum: "$discountedPrice"}}}
         ]);
 
         if (revenue.length > 0) {
-            res.status(200).json({ totalRevenue: revenue[0].totalRevenue, result: true });
+            res.status(200).json({totalRevenue: revenue[0].totalRevenue, result: true});
         } else {
-            res.status(200).json({ totalRevenue: 0, result: true }); // Không có đơn hàng xác nhận
+            res.status(200).json({totalRevenue: 0, result: true}); // Không có đơn hàng xác nhận
         }
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
 router.get('/revenue-by-month', async (req, res) => {
     try {
         const revenueByMonth = await Order.aggregate([
-            { $match: { status: 'confirmed' } }, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
+            {$match: {status: 'confirmed'}}, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
             {
                 $group: {
-                    _id: { $month: "$createdAt" }, // Nhóm theo tháng
-                    totalRevenue: { $sum: "$discountedPrice" } // Tính tổng doanh thu cho mỗi tháng
+                    _id: {$month: "$createdAt"}, // Nhóm theo tháng
+                    totalRevenue: {$sum: "$discountedPrice"} // Tính tổng doanh thu cho mỗi tháng
                 }
             },
-            { $sort: { _id: 1 } } // Sắp xếp theo tháng tăng dần
+            {$sort: {_id: 1}} // Sắp xếp theo tháng tăng dần
         ]);
 
-        res.status(200).json({ revenueByMonth, result: true });
+        res.status(200).json({revenueByMonth, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
+
+router.put('/update-status/:orderId', async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const { status } = req.body;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng', result: false });
+        }
+
+        order.status = status;
+        await order.save();
+
+        res.status(200).json({ message: 'Trạng thái đơn hàng đã được cập nhật', order, result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+    }
+});
+
 module.exports = router;
