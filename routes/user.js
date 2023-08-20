@@ -104,7 +104,9 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({message: 'Tài khoản đã bị khóa', result: false});
         }
 
+
         if (user.sessionID) {
+            sessionId = user.sessionID
             if (sessionID == undefined || user.sessionID !== sessionID) {
                 return res.status(401).json({message: 'SessionID không hợp lệ cho người dùng này', result: false});
             }
