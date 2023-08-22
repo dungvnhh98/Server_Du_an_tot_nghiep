@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Cart = require('../models/cart');
+const Product = require('../models/product');
+
 
 router.post('/add', async (req, res) => {
     try {
@@ -45,7 +47,6 @@ router.get('/get/:username', async (req, res) => {
     try {
         const username = req.params.username;
 
-        // Find all items in the cart for the specified username
         const cartItems = await Cart.find({ username });
 
         res.status(200).json({ cartItems, result: true });
