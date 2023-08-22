@@ -167,5 +167,29 @@ router.put('/update-status/:orderId', async (req, res) => {
         res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
+router.post('/revenue', async (req, res) => {
+    try {
+        const { fromDate, toDate } = req.body;
 
+        const fromDateObj = new Date(fromDate);
+        const toDateObj = new Date(toDate);
+
+        const orders = await Order.find({
+            createdAt: {
+                $gte: fromDateObj,
+                $lte: toDateObj,
+            },
+            status: 'delivered', // You may adjust the status as needed
+        });
+
+        let totalRevenue = 0;
+        for (const order of orders) {
+            totalRevenue += order.discountedPrice || order.originalPrice;
+        }
+
+        res.status(200).json({ totalRevenue, result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+    }
+});
 module.exports = router;
