@@ -2,17 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Cart = require('../models/cart');
 
-// Thêm sản phẩm vào giỏ hàng
 router.post('/add', async (req, res) => {
     try {
-        const { iduser, idproduct, quantity } = req.body;
+        const { username, idproduct, quantity } = req.body;
 
-        // Kiểm tra xem cart đã tồn tại hay chưa
-        let cart = await Cart.findOne({ iduser, idproduct });
+        let cart = await Cart.findOne({ username, idproduct });
 
         if (!cart) {
             cart = new Cart({
-                iduser,
+                username,
                 idproduct,
                 quantity
             });
@@ -28,7 +26,6 @@ router.post('/add', async (req, res) => {
     }
 });
 
-// Xóa sản phẩm khỏi giỏ hàng
 router.delete('/remove/:id', async (req, res) => {
     try {
         const cartId = req.params.id;
@@ -42,6 +39,19 @@ router.delete('/remove/:id', async (req, res) => {
         res.status(200).json({ message: 'Xóa sản phẩm khỏi giỏ hàng thành công', result: true });
     } catch (error) {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
+router.get('/get/:username', async (req, res) => {
+    try {
+        const username = req.params.username;
+
+        // Find all items in the cart for the specified username
+        const cartItems = await Cart.find({ username });
+
+        res.status(200).json({ cartItems, result: true });
+    } catch (error) {
+        console.error('Error fetching cart:', error);
+        res.status(500).json({ message: 'An error occurred while fetching cart', result: false });
     }
 });
 
