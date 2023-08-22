@@ -236,4 +236,42 @@ router.get('/get-user/:username', async (req, res) => {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
     }
 });
+
+router.get('/get-user-email/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const user = await User.findOne({ email });
+
+        if (user) {
+
+            const verificationCode = Math.floor(100000 + Math.random() * 900000);
+            user.verificationCode = verificationCode;
+            user.save();
+
+            const mailOptions = {
+                from: 'dungnmph18838@fpt.edu.vn',
+                to: email,
+                subject: 'Xác thực tài khoản',
+                text: `Mã xác thực của bạn là: ${verificationCode}`
+            };
+
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log('Email sent: ' + info.response);
+                }
+            });
+
+            res.status(200).json({ user, result: true });
+        } else {
+            res.status(200).json({ message: 'Không tìm thấy người dùng với tên người dùng', result: false });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+    }
+});
+
+
+
 module.exports = router;
