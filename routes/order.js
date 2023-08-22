@@ -8,12 +8,19 @@ const router = express.Router();
 
 router.post('/create', async (req, res) => {
     try {
-        const {iduser, idpromotion, products} = req.body;
+        const {iduser, idpromotion, products, paymentMethod} = req.body;
+        let status
+        if(paymentMethod==="online"){
+            status = "cash"
+        }else {
+            status = "pending"
+        }
 
         const newOrder = new Order({
             iduser,
             idpromotion,
-            status: 'pending',
+            status: status,
+            paymentMethod
         });
 
         let promotion = null;

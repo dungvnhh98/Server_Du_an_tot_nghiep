@@ -13,7 +13,6 @@ const orderSchema = new mongoose.Schema({
     originalPrice: { type: Number },// giá trước khi giảm
     discountedPrice: { type: Number },// giá sau khi giảm
     paymentMethod:{type: String, enum:['online', 'cash']},
-
 });
 
 const Order = mongoose.model('Order', orderSchema);

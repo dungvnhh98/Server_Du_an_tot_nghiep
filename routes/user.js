@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
         const existingUser = await User.findOne({username});
 
         if (existingUser) {
-            return res.status(409).json({message: 'Tên người dùng đã tồn tại', result: false});
+            return res.status(200).json({message: 'Tên người dùng đã tồn tại', result: false});
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -72,7 +72,7 @@ router.post('/verify', async (req, res) => {
         const user = await User.findOne({username, verificationCode});
 
         if (!user) {
-            return res.status(400).json({message: 'Mã xác thực không chính xác', result: false});
+            return res.status(200).json({message: 'Mã xác thực không chính xác', result: false});
         }
 
         user.status = 'active';
@@ -131,7 +131,7 @@ router.post('/logout', async (req, res) => {
         const user = await User.findOne({username});
 
         if (!user) {
-            return res.status(401).json({message: 'Tài khoản không tồn tại', result: false});
+            return res.status(200).json({message: 'Tài khoản không tồn tại', result: false});
         }
 
         // Xóa sessionID của user để đăng xuất
@@ -152,12 +152,12 @@ router.put('/change-password', async (req, res) => {
 
         const user = await User.findOne({username});
         if (!user) {
-            return res.status(404).json({message: 'Tên người dùng không tồn tại', result: false});
+            return res.status(200).json({message: 'Tên người dùng không tồn tại', result: false});
         }
 
         const isPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
         if (!isPasswordCorrect) {
-            return res.status(401).json({message: 'Mật khẩu cũ không chính xác', result: false});
+            return res.status(200).json({message: 'Mật khẩu cũ không chính xác', result: false});
         }
 
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
@@ -176,12 +176,12 @@ router.put('/change-info', async (req, res) => {
 
         const user = await User.findOne({username});
         if (!user) {
-            return res.status(404).json({message: 'Tên người dùng không tồn tại', result: false});
+            return res.status(200).json({message: 'Tên người dùng không tồn tại', result: false});
         }
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
-            return res.status(401).json({message: 'Mật khẩu không chính xác', result: false});
+            return res.status(200).json({message: 'Mật khẩu không chính xác', result: false});
         }
 
         user.email = email;
@@ -211,7 +211,7 @@ router.put('/updateStatus/:username', async (req, res) => {
 
         const user = await User.findOne({username});
         if (!user) {
-            return res.status(404).json({message: 'Không tìm thấy người dùng', result: false});
+            return res.status(200).json({message: 'Không tìm thấy người dùng', result: false});
         }
 
         user.status = newStatus;
