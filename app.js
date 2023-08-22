@@ -14,6 +14,7 @@ const productRoutes = require('./routes/product');
 const promotionRoutes = require('./routes/promotion');
 const orderRoutes = require('./routes/order');
 const bannerRoutes = require('./routes/banner');
+const cartRoutes = require('./routes/cart');
 
 var app = express();
 
@@ -48,6 +49,7 @@ app.use('/product', productRoutes);
 app.use('/promotion', promotionRoutes);
 app.use('/order', orderRoutes);
 app.use('/banner', bannerRoutes);
+app.use('/cart', cartRoutes);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

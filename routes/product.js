@@ -100,23 +100,4 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
     }
 });
-router.post('/revenue', async (req, res) => {
-    try {
-        const { start, end } = req.body;
-
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-
-        const orders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate }
-        });
-
-        const totalRevenue = orders.reduce((acc, order) => acc + order.discountedPrice, 0);
-
-        res.status(200).json({ totalRevenue, result: true });
-    } catch (error) {
-        console.error('Đã có lỗi xảy ra:', error);
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
-    }
-});r
 module.exports = router;

@@ -18,10 +18,10 @@ router.post('/create', async (req, res) => {
 
         let promotion = null;
 
-        if (idpromotion !== null) {
+        if (idpromotion !== null && idpromotion !== "") {
             promotion = await Promotion.findById(idpromotion);
             if (!promotion) {
-                return res.status(404).json({message: 'Không tìm thấy khuyến mãi', result: false});
+                return res.status(200).json({message: 'Không tìm thấy khuyến mãi', result: false});
             }
         }
 
@@ -34,7 +34,7 @@ router.post('/create', async (req, res) => {
             const productInfo = await Product.findById(product.idproduct);
 
             if (!productInfo) {
-                return res.status(404).json({
+                return res.status(200).json({
                     message: `Không tìm thấy sản phẩm với id ${product.idproduct}`,
                     result: false,
                 });
@@ -45,6 +45,7 @@ router.post('/create', async (req, res) => {
                 idproduct: product.idproduct,
                 price: productInfo.price,
                 quantity: product.quantity,
+                size: product.size
             });
 
             await subOrder.save();
@@ -150,20 +151,20 @@ router.get('/revenue-by-month', async (req, res) => {
 router.put('/update-status/:orderId', async (req, res) => {
     try {
         const orderId = req.params.orderId;
-        const { status } = req.body;
+        const {status} = req.body;
 
         const order = await Order.findById(orderId);
 
         if (!order) {
-            return res.status(404).json({ message: 'Không tìm thấy đơn hàng', result: false });
+            return res.status(404).json({message: 'Không tìm thấy đơn hàng', result: false});
         }
 
         order.status = status;
         await order.save();
 
-        res.status(200).json({ message: 'Trạng thái đơn hàng đã được cập nhật', order, result: true });
+        res.status(200).json({message: 'Trạng thái đơn hàng đã được cập nhật', order, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 

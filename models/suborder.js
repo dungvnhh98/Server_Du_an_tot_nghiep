@@ -5,6 +5,7 @@ const subOrderSchema = new mongoose.Schema({
     idproduct: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
+    size: { type: String, required: true },
 });
 
 const SubOrder = mongoose.model('SubOrder', subOrderSchema);
