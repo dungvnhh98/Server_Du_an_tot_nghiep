@@ -100,5 +100,4 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
     }
 });
-
 module.exports = router;
