@@ -3,16 +3,15 @@ const Order = require('../models/order');
 const SubOrder = require('../models/suborder');
 const Promotion = require('../models/promotion');
 const Product = require('../models/product');
-const User = require('../models/user');
 const router = express.Router();
-
+const Cart = require('../models/cart');
 router.post('/create', async (req, res) => {
     try {
-        const {iduser, idpromotion, products, paymentMethod} = req.body;
+        const {iduser, idpromotion, products, paymentMethod,sendto} = req.body;
         let status
-        if(paymentMethod==="online"){
+        if (paymentMethod === "online") {
             status = "cash"
-        }else {
+        } else {
             status = "pending"
         }
 
@@ -20,7 +19,8 @@ router.post('/create', async (req, res) => {
             iduser,
             idpromotion,
             status: status,
-            paymentMethod
+            paymentMethod,
+            sendto
         });
 
         let promotion = null;
@@ -33,8 +33,6 @@ router.post('/create', async (req, res) => {
         }
 
         let totalOriginalPrice = 0;
-
-        console.log(products)
 
         // Tạo các đơn hàng nhỏ và tính tổng giá trị
         for (const product of products) {
@@ -83,7 +81,84 @@ router.post('/create', async (req, res) => {
         res.status(201).json({message: 'Đơn hàng đã được tạo thành công', order: newOrder, result: true});
     } catch (error) {
         res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
-        console.log(error)
+    }
+});
+router.post('/create-from-cart', async (req, res) => {
+    try {
+        const {iduser, idpromotion, carts, paymentMethod,sendto} = req.body;
+        let status
+        if (paymentMethod === "online") {
+            status = "cash"
+        } else {
+            status = "pending"
+        }
+
+        const newOrder = new Order({
+            iduser,
+            idpromotion,
+            status: status,
+            paymentMethod,
+            sendto
+        });
+
+        let promotion = null;
+
+        if (idpromotion !== null && idpromotion !== "") {
+            promotion = await Promotion.findById(idpromotion);
+            if (!promotion) {
+                return res.status(200).json({message: 'Không tìm thấy khuyến mãi', result: false});
+            }
+        }
+
+        let totalOriginalPrice = 0;
+
+
+        // Tạo các đơn hàng nhỏ và tính tổng giá trị
+        for (const cart of carts) {
+            const productInfo = await Product.findById(cart.idproduct);
+
+            if (!productInfo) {
+                return res.status(200).json({
+                    message: `Không tìm thấy sản phẩm với id ${product.idproduct}`,
+                    result: false,
+                });
+            }
+
+            const subOrder = new SubOrder({
+                idorder: newOrder._id,
+                idproduct: cart.idproduct,
+                price: productInfo.price,
+                quantity: cart.quantity,
+                size: cart.size
+            });
+
+            await subOrder.save();
+            await Cart.findOneAndRemove({username: cart.username, idproduct: cart.idproduct});
+            totalOriginalPrice += productInfo.price * cart.quantity;
+
+            productInfo.soldCount += cart.quantity;
+            productInfo.quantity -= cart.quantity;
+            await productInfo.save();
+        }
+
+        newOrder.originalPrice = totalOriginalPrice;
+
+        if (promotion !== null && totalOriginalPrice >= promotion.orderValueCondition) {
+            if (promotion.discountType === 'percent') {
+                newOrder.discountedPrice = totalOriginalPrice - totalOriginalPrice * promotion.discountValue / 100;
+            } else {
+                newOrder.discountedPrice = totalOriginalPrice - promotion.discountValue;
+            }
+        } else {
+            newOrder.discountedPrice = totalOriginalPrice;
+            newOrder.idpromotion = null;
+        }
+
+        await newOrder.save();
+
+        res.status(201).json({message: 'Đơn hàng đã được tạo thành công', order: newOrder, result: true});
+    } catch (error) {
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 
@@ -102,10 +177,11 @@ router.get('/getall', async (req, res) => {
 router.get('/orders/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
-        const orders = await Order.find({iduser: userId}).populate('iduser idpromotion').exec();
-        res.status(200).json({orders, result: true});
+        const orders = await Order.find({ iduser: userId }).sort({ createdAt: -1 });
+
+        res.status(200).json({ orders, result: true });
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
     }
 });
 
@@ -176,7 +252,7 @@ router.put('/update-status/:orderId', async (req, res) => {
 });
 router.post('/revenue', async (req, res) => {
     try {
-        const { fromDate, toDate } = req.body;
+        const {fromDate, toDate} = req.body;
 
         const fromDateObj = new Date(fromDate);
         const toDateObj = new Date(toDate);
@@ -194,9 +270,9 @@ router.post('/revenue', async (req, res) => {
             totalRevenue += order.discountedPrice || order.originalPrice;
         }
 
-        res.status(200).json({ totalRevenue, result: true });
+        res.status(200).json({totalRevenue, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 module.exports = router;

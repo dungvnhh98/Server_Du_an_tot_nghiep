@@ -28,13 +28,12 @@ router.post('/create', async (req, res) => {
 // Lấy danh sách tất cả các khuyến mãi
 router.get('/list', async (req, res) => {
     try {
-        const promotions = await Promotion.find();
-        res.status(200).json({promotions, result: true});
+        const promotions = await Promotion.find().sort({ createdAt: -1 });
+        res.status(200).json({ promotions, result: true });
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
     }
 });
-
 // Sửa thông tin khuyến mãi theo ID
 router.put('/update/:id', async (req, res) => {
     try {

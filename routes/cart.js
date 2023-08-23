@@ -47,7 +47,7 @@ router.get('/get/:username', async (req, res) => {
     try {
         const username = req.params.username;
 
-        const cartItems = await Cart.find({ username });
+        const cartItems = await Cart.find({ username }).populate('idproduct');
 
         res.status(200).json({ cartItems, result: true });
     } catch (error) {

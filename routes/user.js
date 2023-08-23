@@ -23,6 +23,11 @@ router.post('/register', async (req, res) => {
         if (existingUser) {
             return res.status(200).json({message: 'Tên người dùng đã tồn tại', result: false});
         }
+        const existingUser2 = await User.findOne({email});
+
+        if (existingUser2) {
+            return res.status(200).json({message: 'Email đã được sử dụng', result: false});
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -90,25 +95,25 @@ router.post('/login', async (req, res) => {
 
         const user = await User.findOne({username});
         if (!user) {
-            return res.status(200).json({message: 'Tên người dùng không tồn tại', result: false});
+            return res.status(200).json({message: 'Tên người dùng không tồn tại', result: false, status: ''});
         }
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
-            return res.status(200).json({message: 'Mật khẩu không chính xác', result: false});
+            return res.status(200).json({message: 'Mật khẩu không chính xác', result: false, status: ''});
         }
 
         if (user.status === 'pending') {
-            return res.status(200).json({message: 'Tài khoản chưa được xác thực', result: false});
+            return res.status(200).json({message: 'Tài khoản chưa được xác thực', result: false, status: 'pending'});
         } else if (user.status === 'locked') {
-            return res.status(200).json({message: 'Tài khoản đã bị khóa', result: false});
+            return res.status(200).json({message: 'Tài khoản đã bị khóa', result: false, status: 'locked'});
         }
 
 
         if (user.sessionID) {
             sessionId = user.sessionID
             if (sessionID == undefined || user.sessionID !== sessionID) {
-                return res.status(200).json({message: 'SessionID không hợp lệ cho người dùng này', result: false});
+                return res.status(200).json({message: 'SessionID không hợp lệ cho người dùng này', result: false, status: ''});
             }
         } else {
             // user chưa có sessionID, tạo mới và lưu
@@ -120,7 +125,7 @@ router.post('/login', async (req, res) => {
         res.status(200).json({message: 'Đăng nhập thành công', user, result: true});
     } catch (error) {
         console.error('Đã có lỗi xảy ra:', error);
-        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false, status: ''});
     }
 });
 
@@ -172,8 +177,8 @@ router.put('/change-password', async (req, res) => {
 
 router.put('/change-info', async (req, res) => {
     try {
-        const {username, password, email, fullname, numberphone} = req.body;
-
+        const {username, password, address, fullname, numberphone} = req.body;
+        console.log(req.body)
         const user = await User.findOne({username});
         if (!user) {
             return res.status(200).json({message: 'Tên người dùng không tồn tại', result: false});
@@ -184,9 +189,9 @@ router.put('/change-info', async (req, res) => {
             return res.status(200).json({message: 'Mật khẩu không chính xác', result: false});
         }
 
-        user.email = email;
         user.fullname = fullname;
         user.numberphone = numberphone;
+        user.address = address;
         await user.save();
 
         res.status(200).json({message: 'Đổi thông tin người dùng thành công', result: true});
@@ -224,23 +229,23 @@ router.put('/updateStatus/:username', async (req, res) => {
 });
 router.get('/get-user/:username', async (req, res) => {
     try {
-        const { username } = req.params;
-        const user = await User.findOne({ username });
+        const {username} = req.params;
+        const user = await User.findOne({username});
 
         if (user) {
-            res.status(200).json({ user, result: true });
+            res.status(200).json({user, result: true});
         } else {
-            res.status(200).json({ message: 'Không tìm thấy người dùng với tên người dùng', result: false });
+            res.status(200).json({message: 'Không tìm thấy người dùng với tên người dùng', result: false});
         }
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
 
 router.get('/get-user-email/:email', async (req, res) => {
     try {
-        const { email } = req.params;
-        const user = await User.findOne({ email });
+        const {email} = req.params;
+        const user = await User.findOne({email});
 
         if (user) {
 
@@ -263,15 +268,14 @@ router.get('/get-user-email/:email', async (req, res) => {
                 }
             });
 
-            res.status(200).json({ user, result: true });
+            res.status(200).json({user, result: true});
         } else {
-            res.status(200).json({ message: 'Không tìm thấy người dùng với tên người dùng', result: false });
+            res.status(200).json({message: 'Không tìm thấy người dùng với tên người dùng', result: false});
         }
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', error: error.message, result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', error: error.message, result: false});
     }
 });
-
 
 
 module.exports = router;
