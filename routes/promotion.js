@@ -5,27 +5,43 @@ const router = express.Router();
 
 router.post('/create', async (req, res) => {
     try {
-        const {title, startDate, endDate, discountType, discountValue, orderValueCondition, content} = req.body;
-
-        const newPromotion = new Promotion({
+        const {
             title,
+            content,
             startDate,
             endDate,
             discountType,
             discountValue,
-            orderValueCondition,
+            orderValueCondition
+        } = req.body;
+
+        const newPromotion = new Promotion({
+            title,
             content,
+            startDate,
+            endDate,
+            discountType,
+            discountValue,
+            orderValueCondition
         });
 
         await newPromotion.save();
 
-        res.status(201).json({message: 'Khuyến mãi đã được tạo thành công', result: true});
+        res.status(201).json({
+            message: 'Tạo khuyến mãi thành công',
+            promotion: newPromotion,
+            result: true
+        });
     } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
+        // Xử lý lỗi nếu có
+        res.status(500).json({
+            message: 'Đã có lỗi xảy ra',
+            error: error.message,
+            result: false
+        });
     }
 });
 
-// Lấy danh sách tất cả các khuyến mãi
 router.get('/list', async (req, res) => {
     try {
         const promotions = await Promotion.find().sort({ createdAt: -1 });

@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var bodyParser = require('body-parser');
-
+const socketIO = require('socket.io');
 const mongoose = require('mongoose');
 
 var indexRouter = require('./routes/index');
@@ -66,5 +66,12 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+app.post('/send-notification', (req, res) => {
+    const notificationMessage = req.body.message;
 
+    // Gửi thông báo tới tất cả các client đang kết nối
+    io.emit('notification', notificationMessage);
+
+    res.status(200).json({ message: 'Notification sent' });
+});
 module.exports = app;

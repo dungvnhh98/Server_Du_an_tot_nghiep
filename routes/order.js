@@ -1,23 +1,30 @@
 const express = require('express');
-const Order = require('../models/order');
 const SubOrder = require('../models/suborder');
 const Promotion = require('../models/promotion');
 const Product = require('../models/product');
 const router = express.Router();
 const Cart = require('../models/cart');
+
+const Order = require('../models/order');
+
+
+
 router.post('/create', async (req, res) => {
     try {
-        const {iduser, idpromotion, products, paymentMethod,sendto} = req.body;
+        const {iduser, idpromotion, products, paymentMethod, sendto} = req.body;
         let status
         if (paymentMethod === "online") {
-            status = "cash"
+            status = "confirmed"
         } else {
             status = "pending"
         }
-
+        let a = idpromotion
+        if (idpromotion === "") {
+            a = "64e666f75034176b73c17cc2"
+        }
         const newOrder = new Order({
             iduser,
-            idpromotion,
+            idpromotion: a,
             status: status,
             paymentMethod,
             sendto
@@ -85,17 +92,21 @@ router.post('/create', async (req, res) => {
 });
 router.post('/create-from-cart', async (req, res) => {
     try {
-        const {iduser, idpromotion, carts, paymentMethod,sendto} = req.body;
+        const {iduser, idpromotion, carts, paymentMethod, sendto} = req.body;
         let status
         if (paymentMethod === "online") {
-            status = "cash"
+            status = "confirmed"
         } else {
             status = "pending"
+        }
+        let a = idpromotion
+        if (idpromotion === "") {
+            a = "64e666f75034176b73c17cc2"
         }
 
         const newOrder = new Order({
             iduser,
-            idpromotion,
+            idpromotion: a,
             status: status,
             paymentMethod,
             sendto
@@ -177,11 +188,11 @@ router.get('/getall', async (req, res) => {
 router.get('/orders/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
-        const orders = await Order.find({ iduser: userId }).sort({ createdAt: -1 });
+        const orders = await Order.find({iduser: userId}).sort({createdAt: -1});
 
-        res.status(200).json({ orders, result: true });
+        res.status(200).json({orders, result: true});
     } catch (error) {
-        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
     }
 });
 
@@ -198,7 +209,7 @@ router.get('/suborders/:orderId', async (req, res) => {
 router.get('/revenue', async (req, res) => {
     try {
         const revenue = await Order.aggregate([
-            {$match: {status: 'confirmed'}}, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
+            {$match: {status: 'delivered'}}, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
             {$group: {_id: null, totalRevenue: {$sum: "$discountedPrice"}}}
         ]);
 
@@ -212,24 +223,6 @@ router.get('/revenue', async (req, res) => {
     }
 });
 
-router.get('/revenue-by-month', async (req, res) => {
-    try {
-        const revenueByMonth = await Order.aggregate([
-            {$match: {status: 'confirmed'}}, // Chỉ tính doanh thu từ các đơn hàng đã xác nhận
-            {
-                $group: {
-                    _id: {$month: "$createdAt"}, // Nhóm theo tháng
-                    totalRevenue: {$sum: "$discountedPrice"} // Tính tổng doanh thu cho mỗi tháng
-                }
-            },
-            {$sort: {_id: 1}} // Sắp xếp theo tháng tăng dần
-        ]);
-
-        res.status(200).json({revenueByMonth, result: true});
-    } catch (error) {
-        res.status(500).json({message: 'Đã có lỗi xảy ra', result: false});
-    }
-});
 
 router.put('/update-status/:orderId', async (req, res) => {
     try {
@@ -262,7 +255,7 @@ router.post('/revenue', async (req, res) => {
                 $gte: fromDateObj,
                 $lte: toDateObj,
             },
-            status: 'delivered', // You may adjust the status as needed
+            status: 'delivered',
         });
 
         let totalRevenue = 0;

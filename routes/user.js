@@ -256,7 +256,7 @@ router.get('/get-user-email/:email', async (req, res) => {
             const mailOptions = {
                 from: 'dungnmph18838@fpt.edu.vn',
                 to: email,
-                subject: 'Xác thực tài khoản',
+                subject: 'Khôi phục mật khẩu',
                 text: `Mã xác thực của bạn là: ${verificationCode}`
             };
 
@@ -277,5 +277,27 @@ router.get('/get-user-email/:email', async (req, res) => {
     }
 });
 
+router.post('/create-new-password', async (req, res) => {
+    try {
+        const { username, newPassword } = req.body;
 
+        // Find the user by username
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.status(200).json({ message: 'Tên người dùng không tồn tại', result: false });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the user's password in the database
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Tạo mật khẩu mới thành công', result: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Đã có lỗi xảy ra', result: false });
+    }
+});
 module.exports = router;

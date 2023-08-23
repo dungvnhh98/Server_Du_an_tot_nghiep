@@ -1,5 +1,13 @@
 var express = require('express');
 var router = express.Router();
+const Order = require('../models/order');
+var socketapi = require("../socketapi");
+
+const callbackonchange = Order.watch()
+callbackonchange.on('change', change => {
+    console.log("Order thay đổi" + JSON.stringify(change))
+    socketapi.io.emit("change",change)
+})
 router.get('/', function(req, res, next) {
     res.render('index', { title: 'Dự án tốt nghiệp' });
 });
